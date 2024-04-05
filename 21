@@ -1,0 +1,107 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+
+titles = pd.read_csv("imdb/titles.csv")
+
+cast = pd.read_csv("imdb/cast.csv")
+
+release_dates = pd.read_csv("imdb/release_dates.csv")
+
+#print(titles)
+#print(cast)
+#print(release_dates)
+
+#2. Movies with title "North by Northwest"
+nnw_count = titles[titles['title'] == "North by Northwest"].shape[0]
+print(f"Movies titled 'North by Northwest': {nnw_count}")
+
+#3. Versions of Hamlet, first and last
+hamlet_versions = titles[titles['title'] == "Hamlet"]
+first_hamlet = hamlet_versions['year'].min()
+last_hamlet = hamlet_versions['year'].max()
+print(f"Versions of 'Hamlet': {hamlet_versions.shape[0]}, First: {first_hamlet}, Last: {last_hamlet}")
+
+#4. List all the movies called Treasure Island from oldest to newest
+treasure_island = titles[titles['title'] == "Treasure Island"].sort_values(by='year')
+print("Treasure Island movies from oldest to newest:")
+print(treasure_island[['title', 'year']])
+
+#5. How many movies were made in 1950? 1980? 2000? What conclusions can you draw from these data points?
+for year in [1950, 1980, 2000]:
+    count = titles[titles['year'] == year].shape[0]
+    print(f"Movies made in {year}: {count}")
+
+#6.
+
+metropolis_cast_size = cast[cast['title'] == "Metropolis"].shape[0]
+print(f"Cast size of 'Metropolis': {metropolis_cast_size}")
+
+#7
+# Grouping by year and type to count roles for actors and actresses separately
+roles_over_time = cast.groupby(['year', 'type']).size().unstack(fill_value=0)
+
+# Plotting the data
+roles_over_time.plot(kind='line')
+plt.title("Roles Over Time for Actors & Actresses")
+plt.xlabel("Year")
+plt.ylabel("Number of Roles")
+plt.legend(title='Type')
+plt.show()
+
+#9. How many "leading roles" were there in the 2000's?
+leading_roles_2000s = cast[(cast['year'] >= 2000) & (cast['year'] < 2010) & (cast['n'] == 1)].shape[0]
+print(f"Leading roles in the 2000's: {leading_roles_2000s}")
+
+#10.ow many roles received no ranking in the 2000's vs. the 1950's?
+no_rank_2000s = cast[(cast['year'] >= 2000) & (cast['year'] < 2010) & (cast['n'].isnull())].shape[0]
+no_rank_1950s = cast[(cast['year'] >= 1950) & (cast['year'] < 1960) & (cast['n'].isnull())].shape[0]
+print(f"Roles with no ranking in 2000's: {no_rank_2000s}, in 1950's: {no_rank_1950s}")
+
+titles['decade'] = (titles['year'] // 10) * 10
+movies_per_decade = titles.groupby('decade').size()
+movies_per_decade.plot(kind='bar')
+plt.title("Number of Films Made Each Decade")
+plt.xlabel("Decade")
+plt.ylabel("Number of Films")
+plt.show()
+
+# Filter the titles DataFrame to include only movies up to the year 2024
+titles_up_to_2024 = titles[titles['year'] <= 2024]
+
+# Calculate the decade for each movie
+titles_up_to_2024['decade'] = (titles_up_to_2024['year'] // 10) * 10
+
+# Count the number of movies made in each decade
+movies_per_decade = titles_up_to_2024.groupby('decade').size()
+
+# Plot the number of films made in each decade
+movies_per_decade.plot(kind='bar')
+plt.title("Number of Films Made Each Decade up to 2024")
+plt.xlabel("Decade")
+plt.ylabel("Number of Films")
+plt.show()
+
+rustler_roles = cast[cast['character'] == "Rustler"].groupby('year').size()
+rustler_roles.plot(kind='line')
+plt.title("Number of Films with 'Rustler' Character Over Time")
+plt.xlabel("Year")
+plt.ylabel("Number of Roles")
+plt.show()
+
+#13. What are the top ten character names of all time?
+top_characters = cast['character'].value_counts().head(10)
+print("Top 10 character names of all time:")
+print(top_characters)
+
+most_films_actor_1990s = cast[(cast['year'] >= 1990) & (cast['year'] < 2000)]['name'].value_counts().idxmax()
+print(f"Actor with most films in the 1990s: {most_films_actor_1990s}")
+
+# Filtering out rows where 'character' is NA/null first
+cast_non_null_characters = cast.dropna(subset=['character'])
+
+# Now, filter for characters that start with 'Science', count them, and then list the top 10
+science_roles = cast_non_null_characters[cast_non_null_characters['character'].str.startswith("Science")]['character'].value_counts().head(10)
+
+print("Top 10 roles that start with 'Science':")
+print(science_roles)
